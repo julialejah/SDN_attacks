@@ -10,10 +10,12 @@ from mininet.link import TCLink
 from mininet.link import OVSLink
 from mininet.log import info, setLogLevel
 
+contip='172.17.0.2'
+
 setLogLevel('info')
 net = Containernet(link=TCLink)
 c0 = RemoteController (name='C0',controller=RemoteController, 
-			port=6653,  ip= '192.168.0.23')
+			port=6653,  ip= contip)
 info('*** Net created \n')
 h1 = net.addHost( 'h1', )
 h2 = net.addHost( 'h2' )
@@ -28,8 +30,8 @@ h0 = net.addHost( 'h0' )
 hClient = net.addDocker( 'hClient', dimage="scapy")
 hServer = net.addDocker( 'hServer' , dimage="ubuntu:trusty")
 
-s1 = net.addSwitch('s1', cls=OVSSwitch, protocols='OpenFlow13',controller=RemoteController,ip='192.168.0.23')
-s2 = net.addSwitch( 's2' ,cls=OVSSwitch, protocols="OpenFlow13",controller=RemoteController,ip='192.168.0.23')
+s1 = net.addSwitch('s1', cls=OVSSwitch, protocols='OpenFlow13',controller=RemoteController,ip=contip)
+s2 = net.addSwitch( 's2' ,cls=OVSSwitch, protocols="OpenFlow13",controller=RemoteController,ip=contip)
 
 bw=100
 
