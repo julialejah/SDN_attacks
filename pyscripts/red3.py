@@ -41,23 +41,24 @@ hServer = net.addDocker( 'hServer' , dimage="ubuntu:trusty", volumes=["/home/jul
 s1 = net.addSwitch('s1', cls=OVSSwitch, protocols='OpenFlow13',controller=RemoteController,ip='192.168.0.23')
 s2 = net.addSwitch( 's2' ,cls=OVSSwitch, protocols="OpenFlow13",controller=RemoteController,ip='192.168.0.23')
 
-bw=100
+#bw=100
 
-hosts = [h1, h2, h3, h4, h5, h6, h7, h8, h9, h0, hClient]
+#hosts = [h1, h2, h3, h4, h5, h6, h7, h8, h9, h0, hClient]
+hosts = [h1, h2, h0, hClient]
 
-net.addLink( s1, h1 , bw=bw)
-net.addLink( s1, h2 , bw=bw)
-net.addLink( s1, h3 , bw=bw)
-net.addLink( s1, h4 , bw=bw)
-net.addLink( s1, h5 , bw=bw)
-net.addLink( s2, h6 , bw=bw)
-net.addLink( s2, h7 , bw=bw)
-net.addLink( s2, h8 , bw=bw)
-net.addLink( s2, h9 , bw=bw)
-net.addLink( s2, h0 , bw=bw)
+net.addLink( s1, h1 )#, bw=bw)
+net.addLink( s1, h2 )#, bw=bw)
+net.addLink( s1, h3 )#, bw=bw)
+net.addLink( s1, h4 )#, bw=bw)
+net.addLink( s1, h5 )#, bw=bw)
+net.addLink( s2, h6 )#, bw=bw)
+net.addLink( s2, h7 )#, bw=bw)
+net.addLink( s2, h8 )#, bw=bw)
+net.addLink( s2, h9 )#, bw=bw)
+net.addLink( s2, h0 )#, bw=bw)
 net.addLink( s1, s2)
-net.addLink( s1, hClient , bw=bw)
-net.addLink( s2, hServer, bw=bw )
+net.addLink( s1, hClient )#, bw=bw)
+net.addLink( s2, hServer)#, bw=bw )
 
 info('*** Starting network\n')
 net.build()
@@ -71,10 +72,12 @@ print('network started')
 info('*** Testing connectivity\n')
 time.sleep(10)
 net.ping([hClient, hServer])
-#net.pingAll
+#net.pingAll()
 net.ping([h0,h1,h2])
 #info ('*** pingall end\n')
+#info('***end pingall***\n')
 time.sleep(10)
+info('***start randmac***\n')
 
 for i in hosts:
     i.cmd('python3 /root/rdmac.py '+hServer.MAC()+' '+hServer.IP())
