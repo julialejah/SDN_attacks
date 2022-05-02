@@ -10,6 +10,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN apt-get update && \
     apt-get install -y openjdk-8-jdk && \
     apt-get install -y ant curl unzip && \
+    apt-get install -y net-tools \
     apt-get clean;
     
 # Setup JAVA_HOME -- useful for docker commandline
