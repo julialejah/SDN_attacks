@@ -10,6 +10,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN apt-get update && \
     apt-get install -y openjdk-8-jdk && \
     apt-get install -y ant curl unzip && \
+    apt-get install -y net-tools && \
     apt-get clean;
     
 # Setup JAVA_HOME -- useful for docker commandline
@@ -19,4 +20,9 @@ RUN export JAVA_HOME
 # Download ODL 
 RUN curl -XGET -O https://nexus.opendaylight.org/content/repositories/opendaylight.release/org/opendaylight/integration/karaf/0.8.1/karaf-0.8.1.zip
 RUN unzip karaf-0.8.1.zip 
-#RUN echo 'featuresBoot = odl-openflowplugin-libraries odl-mdsal-all odl-l2switch-all odl-restconf-all odl-yangtools-common odl-dlux-core' >> /karaf-0.8.1/etc/org.apache.karaf.features.cfg
+
+# Install the required features
+RUN sed -i 's/0af5d86a-980c-48a9-a02d-bdac71ff8529/odl-openflowplugin-libraries odl-mdsal-all odl-l2switch-all odl-restconf-all odl-yangtools-common odl-dlux-core/g' /karaf-0.8.1/etc/org.apache.karaf.features.cfg
+
+# run karaf
+RUN karaf-0.8.1/bin/karaf
