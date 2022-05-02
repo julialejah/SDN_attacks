@@ -18,6 +18,6 @@ ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64/jre
 RUN export JAVA_HOME
 
 # Download ODL 
-RUN curl -XGET -O https://nexus.opendaylight.org/content/repositories/opendaylight.release/org/opendaylight/integration/karaf/0.8.1/karaf-0.8.1.zip
-RUN unzip karaf-0.8.1.zip 
+RUN curl -XGET -O https://nexus.opendaylight.org/content/repositories/opendaylight.release/org/opendaylight/integration/karaf/0.8.1/karaf-0.8.1.tar.gz
+RUN tar -C /opt/ -xvzf karaf-0.8.1.tar.gz
 #RUN echo 'featuresBoot = odl-openflowplugin-libraries odl-mdsal-all odl-l2switch-all odl-restconf-all odl-yangtools-common odl-dlux-core' >> /karaf-0.8.1/etc/org.apache.karaf.features.cfg
