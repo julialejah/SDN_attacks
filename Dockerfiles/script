@@ -1,0 +1,8 @@
+#!/bin/bash
+echo "iniciando" >> /root/salida.log
+sleep 5
+echo "inicia karaf" >> /root/salida.log
+/karaf-0.8.4/bin/start
+sleep 5
+/karaf-0.8.4/bin/client feature:install odl-dlux-core odl-openflowplugin-libraries odl-mdsal-all odl-l2switch-all odl-restconf-all odl-yangtools-common odl-dlux-core features-dluxapps features-dlux 
+echo "termina" >> /root/salida.log
