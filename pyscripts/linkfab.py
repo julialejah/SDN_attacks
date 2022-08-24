@@ -1,48 +1,94 @@
 #! /usr/bin/env python
+#creates a fake link between 2 hosts
+#takes the first argument to define the host
 
+from scapy.contrib.lldp import *
 import sys
 import threading
 import time
 import socket
 import pyshark
 import os
+import json
+from scapy.all import sniff
+import requests
+from fastapi import FastAPI
+
 # function to send LLDP packets and simulate a link
+_native_value = (int, float, str, bytes, bool, list, tuple, set, dict, type(None))
+def _layer2dict(obj):
+    d = {}
+    if not getattr(obj, 'fields_desc', None):
+        return
+    for f in obj.fields_desc:
+        value = getattr(obj, f.name)
+        if value is type(None):
+            value = None
+        if not isinstance(value, _native_value):
+            value = _layer2dict(value)
+        if type(value) is bytes:
+            d[f.name] = str(value)
+#            print('type: '+type(str(value).encode()))
+        else:
+            d[f.name] = value
+    return {obj.name: d}
+
+# Adapted from https://github.com/littlezz/scapy2dict
+def to_dict(p):
+        """
+    Turn every layer to dict, store in list.
+    :return: list
+    """
+    d = list()
+    count = 0
+    print('Paquete: \n'+str(p))
+    while True:
+        layer = p.getlayer(count)
+        if not layer:
+            break
+        d.append(_layer2dict(layer))
+        count += 1
+    return d
+
 
 def get_ifa():
     ifs=os.listdir('/sys/class/net/')
     for i in range(len(ifs)):
         if ifs[i] != 'lo' and ifs[i]!= 'eth0':
             ifa = ifs[i]
-#    print ('ifa es: '+ifa)
+    print ('ifa es: '+ifa)
     return ifa
 
 def linkfabr(ifa):
     print('entra 1')
     lim = 0
+    lpc = 0
     lis =[]
     lld =[]  
-    name=socket.gethostname()
-    lbool=False
-    while lim<10000  :
-        cap = pyshark.LiveRingCapture(interface=ifa)
-        cap.sniff(packet_count=1)
-        p = cap[0]
-        frame_type=getattr(p.eth,'type')
-        print(type(frame_type))
-        if frame_type == '0x000088cc':
-            with open('/root/'+str(name)+'llpack','a') as f: #option a for append
-#                print(dir(p))
-                info=p.lldp
-                f.write(str(info)+'\n\n')
-#            print('llega lldp')
-            lld.append(p)
+    while lim<1000  :
         lim = lim + 1
-        lld.append(p)
-        with open('/root/'+str(name)+'_capture.txt','a') as f:
-            f.write('Frame type: '+str(frame_type)+'\n')
-            f.write('format: '+str(type(frame_type))+'\n')
-            f.write(str(p.show)+'\n\n')
-        print('*')
+        pkt = sniff(count=1,iface=ifa)[0]
+        data = to_dict(pkt)
+        print("tipo de dato")
+        print (type(data))
+        data["host"]=name
+        ethtype=data[0]['Ethernet']['type']
+        if ethtype == 0x88cc:
+            print('lldp')
+            json_object = json.dumps(data)
+            print(json_object)
+            break;
 
+def getlldppack():
+    while true:
+        host_2=sys.argv[1]
+        file = "/root/lldppack_"+str(host_2)
+        with open (file,r) as f:
+            pack = f.read(json_pack)
+        json_object = jason.loads(pack)            
+            
+            
+name=socket.gethostname()
 ifa = get_ifa()
-linkfabr(ifa)
+print(ifa)#ifa = 'enp2s0'
+linkfabr(ifa)           
