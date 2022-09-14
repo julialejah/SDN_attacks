@@ -1,7 +1,7 @@
 
 #Build images from dockerfile
-sudo docker build --tag=scapy -f containernet/Dockerfile/scapy/Dockerfile  containernet/Dockerfile/scapy
-sudo docker build --tag=odl_f -f containernet/Dockerfile/odl/Dockerfile  containernet/Dockerfile/odl
+sudo docker build --tag=scapy -f Dockerfile/scapy/Dockerfile  containernet/Dockerfile/scapy
+sudo docker build --tag=odl_f -f Dockerfile/odl/Dockerfile  containernet/Dockerfile/odl
 
 #Create directory for the dockers in file "red2.py"
 sudo mkdir /home/juli/shvol
