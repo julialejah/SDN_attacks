@@ -21,18 +21,19 @@ import scapy.all as scapy
 import time
 
 contip = sys.argv[1]
+dirhome = sys.argv[2]
 
 setLogLevel('info')
 net = Containernet(link=TCLink)
 c0 = RemoteController (name='C0',controller=RemoteController, 
 			port=6653,  ip= contip)
 info('*** controller ok \n')
-h1 = net.addDocker( 'h1' , dimage="scapy", volumes=["~/SDN_attacks/pyscripts/attacks:/root/:rw"])
-h2 = net.addDocker( 'h2' , dimage="scapy", volumes=["~/SDN_attacks/pyscripts/attacks:/root/:rw"])
-h9 = net.addDocker( 'h9' , dimage="scapy", volumes=["~/SDN_attacks/pyscripts/attacks:/root/:rw"])
-h0 = net.addDocker( 'h0' , dimage="scapy", volumes=["~/SDN_attacks/pyscripts/attacks:/root/:rw"])
-hClient = net.addDocker( 'hClient', dimage="scapy", volumes=["~/SDN_attacks/pyscripts/attacks:/root/:rw"])
-hServer = net.addDocker( 'hServer' , dimage="ubuntu:trusty", volumes=["~/SDN_attacks/pyscripts/attacks:/root/:rw"])
+h1 = net.addDocker( 'h1' , dimage="scapy", volumes=[dirhome+"/SDN_attacks/pyscripts/attacks:/root/:rw"])
+h2 = net.addDocker( 'h2' , dimage="scapy", volumes=[dirhome+"/SDN_attacks/pyscripts/attacks:/root/:rw"])
+h9 = net.addDocker( 'h9' , dimage="scapy", volumes=[dirhome+"/SDN_attacks/pyscripts/attacks:/root/:rw"])
+h0 = net.addDocker( 'h0' , dimage="scapy", volumes=[dirhome+"/SDN_attacks/pyscripts/attacks:/root/:rw"])
+hClient = net.addDocker( 'hClient', dimage="scapy", volumes=[dirhome+"/SDN_attacks/pyscripts/attacks:/root/:rw"])
+hServer = net.addDocker( 'hServer' , dimage="ubuntu:trusty", volumes=[dirhome+"/SDN_attacks/pyscripts/attacks:/root/:rw"])
 #volumes=["/:/mnt/vol1:rw"]
 s1 = net.addSwitch('s1', cls=OVSSwitch, protocols='OpenFlow13')#,controller=RemoteController,ip=contip)
 s2 = net.addSwitch( 's2' ,cls=OVSSwitch, protocols="OpenFlow13")#,controller=RemoteController,ip=contip)
