@@ -78,22 +78,17 @@ def linkfabr(ifa):
 
 def getlldppack():
     host_2=sys.argv[1]
-    lim = 0
-    while lim<10:
+    while true:
         try:
-            file = "/root/lldppack_"+str(host_2)+"_"+str(lim)+".pk"
+            file = "/root/lldppack_"+str(host_2)
             with open (file,r) as f:
-                pack = f.read()
-            sendp(pack,count=1, ifa=ifa)
-            lim = lim +1
-        except e:
-            log = "/root/error.log"
-            with open(log,r) as lf:
-                lf.write(e)
-
-        
+                pack = f.read(json_pack)
+            json_object = jason.loads(pack)
+        except exp:
+            print("")
 
 
+name=socket.gethostname()
 ifa = get_ifa()
 print(ifa)#ifa = 'enp2s0'
 linkfabr(ifa)
