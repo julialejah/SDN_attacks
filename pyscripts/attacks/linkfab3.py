@@ -1,10 +1,11 @@
 #! /usr/bin/env python
 #creates a fake link between 2 hosts
-#takes the first argument to define the host
+## Args [1] = name of the second host
 
 from scapy.contrib.lldp import *
 import sys
 import threading
+from scapy.all import *
 import time
 import socket
 import pyshark
@@ -59,7 +60,7 @@ def get_ifa():
     print ('ifa es: '+ifa)
     return ifa
 
-def linkfabr(ifa):
+def linkfabr(ifa,hostname):
     print('entra 1')
     lim = 0
     lpc = 0
@@ -72,28 +73,35 @@ def linkfabr(ifa):
         ethtype=data[0]['Ethernet']['type']
         if ethtype == 0x88cc:
             print('lldp')
-            with open("/root/lldppack_"+name+"_"+str(lim)+".pk",'w',encoding = 'utf-8') as f:
-                f.write(pkt)
+            with open("/root/lldppack_"+hostname+"_"+str(lim)+".pk",'w',encoding = 'utf-8') as f:
+                f.write(str(pkt))
             
 
-def getlldppack():
-    host_2=sys.argv[1]
-    lim = 0
+def getlldppack(host_2,ifa):
+    print("entra func thre")
+    lim = 1
+    log = "/root/log.log"
+    file = "/root/lldppack_"+str(host_2)+"_"+str(lim)+".pk"
     while lim<10:
         try:
-            file = "/root/lldppack_"+str(host_2)+"_"+str(lim)+".pk"
-            with open (file,r) as f:
+            with open (file) as f:
                 pack = f.read()
-            sendp(pack,count=1, ifa=ifa)
+        except:
+            with open(log,'a') as lf:
+                lf.write("error when reading the packet "+file+"\n")
+            time.sleep(8)
+        else:
+            print("lee")
+            sendp(pack,count=1, iface=ifa)
             lim = lim +1
-        except e:
-            log = "/root/error.log"
-            with open(log,r) as lf:
-                lf.write(e)
+            with open(log,'a') as lf:
+                lf.write('read packet '+file+"\n")
 
-        
-
-
-ifa = get_ifa()
+ifa = get_ifa()        
+host_2=sys.argv[1]
+print(host_2)
+getpack = threading.Thread(target=getlldppack,args=[host_2,ifa])
+getpack.start()
+hostname = socket.gethostname()
 print(ifa)#ifa = 'enp2s0'
-linkfabr(ifa)
+linkfabr(ifa,hostname)

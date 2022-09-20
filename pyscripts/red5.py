@@ -3,7 +3,11 @@
 ## Link fabrication attack and injection of hosts 
 ## using method in  https://www.mdpi.com/2076-3417/12/3/1103/htm host injection
 ## using method in Soltani, S., Shojafar, M., Mostafaei, H., Pooranian, Z., & Tafazolli, R. (2021). Link Latency Attack in Software-Defined Networks. Proceedings of the 2021 17th International Conference on Network and Service Management: Smart Management for Future Networks and Services, CNSM 2021, 187–193. https://doi.org/10.23919/CNSM52442.2021.9615598
-## ip of the controller is the first parameter
+## ..
+## ..
+## Args [1] = controller ip 
+## Args [2] = repository directory
+
 import requests
 import json
 import xml.etree.ElementTree as ET
@@ -30,6 +34,8 @@ c0 = RemoteController (name='C0',controller=RemoteController,
 info('*** controller ok \n')
 h1 = net.addDocker( 'h1' , dimage="scapy", volumes=[dirhome+"/SDN_attacks/pyscripts/attacks:/root/:rw"])
 h2 = net.addDocker( 'h2' , dimage="scapy", volumes=[dirhome+"/SDN_attacks/pyscripts/attacks:/root/:rw"])
+h3 = net.addDocker( 'h3' , dimage="scapy", volumes=[dirhome+"/SDN_attacks/pyscripts/attacks:/root/:rw"])
+h4 = net.addDocker( 'h4' , dimage="scapy", volumes=[dirhome+"/SDN_attacks/pyscripts/attacks:/root/:rw"])
 h9 = net.addDocker( 'h9' , dimage="scapy", volumes=[dirhome+"/SDN_attacks/pyscripts/attacks:/root/:rw"])
 h0 = net.addDocker( 'h0' , dimage="scapy", volumes=[dirhome+"/SDN_attacks/pyscripts/attacks:/root/:rw"])
 hClient = net.addDocker( 'hClient', dimage="scapy", volumes=[dirhome+"/SDN_attacks/pyscripts/attacks:/root/:rw"])
@@ -41,7 +47,7 @@ s3 = net.addSwitch( 's3' ,cls=OVSSwitch, protocols="OpenFlow13")#,controller=Rem
 #bw=100
 
 #hosts = [h1, h2, h3, h4, h5, h6, h7, h8, h9, h0, hClient]
-hosts = [h1, h2, h0, h9, hClient]
+hosts = [h1, h2, h0, h9, hClient, hServer, h3, h4]
 
 net.addLink( s1, h1 )#, bw=bw)
 net.addLink( s1, h2 )#, bw=bw)
@@ -52,6 +58,8 @@ net.addLink( s1, s3)
 net.addLink( s1, hClient )#, bw=bw)
 net.addLink( s2, hServer)#, bw=bw )
 net.addLink( s2, h9)
+net.addLink( s3, h3)
+net.addLink( s3, h4)
 
 info('*** Starting network\n')
 net.build()
@@ -60,24 +68,23 @@ for controller in net.controllers:
     print(controller,' is available: ',c0.isAvailable())
 net.get('s1').start([c0])
 net.get('s2').start([c0])
+net.get('s3').start([c0])
 print('network started')
 
 info('*** Testing connectivity\n')
-for i in hosts:
+#for i in hosts:
     #i.cmd('touch /root/net1.pcap')
-    i.cmd('nohup python3 /root/linkfab.py &')
-time.sleep(5)
-net.ping([hClient, hServer])
-net.ping([h0,h1,h2])
+#    i.cmd('nohup python3 /root/linkfab.py &')
+#time.sleep(5)
+net.ping(hosts)
+
 time.sleep(10)
 
-info('***start randmac with DoS attack***\n')
-#print (hServer.MAC())
-#print (hServer.IP())
+h1.cmd('touch /root/h1.pcap')
+h1.cmd('nohup tshark -ni any -w /root/h1.pcap  &')
+h1.cmd('nohup python3 /root/linkfab3.py '+str(h4.name)+' &')
+h4.cmd('nohup python3 /root/linkfab3.py '+str(h1.name)+' &')
 
-for i in hosts:
-    i.cmd('nohup python3 /root/rdmac3.py '+hServer.MAC()+' '+hServer.IP()+' '+str(2)+' &')
-    print('ataque en '+str(i)+'\n')
 print('*****')
 info('*** Running CLI\n')
 CLI(net)

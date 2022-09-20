@@ -72,8 +72,8 @@ def linkfabr(ifa):
         ethtype=data[0]['Ethernet']['type']
         if ethtype == 0x88cc:
             print('lldp')
-            with open("/root/lldppack_"+hostname+"_"+str(lim)+".pk",'w',encoding = 'utf-8') as f:
-                f.write(str(pkt))
+            with open("/root/lldppack_"+name+"_"+str(lim)+".pk",'w',encoding = 'utf-8') as f:
+                f.write(pkt)
             
 
 def getlldppack():
@@ -93,8 +93,7 @@ def getlldppack():
 
         
 
-hostname = socket.gethostname()
+
 ifa = get_ifa()
 print(ifa)#ifa = 'enp2s0'
-
 linkfabr(ifa)

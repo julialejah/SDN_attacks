@@ -65,39 +65,28 @@ def linkfabr(ifa):
     lpc = 0
     lis =[]
     lld =[]  
-    while lim<1000  :
+    while lim<10  :
         lim = lim + 1
         pkt = sniff(count=1,iface=ifa)[0]
         data = to_dict(pkt)
         ethtype=data[0]['Ethernet']['type']
         if ethtype == 0x88cc:
             print('lldp')
-            with open("/root/lldppack_"+name+".json",'w',encoding = 'utf-8') as f:
+            with open("/root/lldppack_"+name+"_"+str(lim)+".pk",'w',encoding = 'utf-8') as f:
                 f.write(pkt)
-            json_object = json.dumps(data)
-
-            print(json_object)
-            break
+            
 
 def getlldppack():
+    host_2=sys.argv[1]
+    lim = 0
     while true:
-        host_2=sys.argv[1]
-        file = "/root/lldppack_"+str(host_2)
-        with open (file,r) as f:
-            pack = f.read(json_pack)
-        json_object = jason.loads(pack)
-#for i in range(len(data)):
-#                json_object = json.dumps(data[i])
-#        y=json.dumps(d)
-#        print(y) 
+        try:
+            file = "/root/lldppack_"+str(host_2)+"_"+str(lim)+".pk"
+            with open (file,r) as f:
+                pack = f.read()
+            sendp(pack,count=1, iface=ifa)
+            lim = lim +1
 
-
-#app = FastAPI()
-#@app.get("/getmsg")
-#def getmsg ():
-#    return {
-#        "message": "Hello World"
-#} 
 
 name=socket.gethostname()
 ifa = get_ifa()
