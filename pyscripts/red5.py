@@ -45,8 +45,10 @@ s1 = net.addSwitch('s1', cls=OVSSwitch, protocols='OpenFlow13')#,controller=Remo
 s2 = net.addSwitch( 's2' ,cls=OVSSwitch, protocols="OpenFlow13")#,controller=RemoteController,ip=contip)
 s3 = net.addSwitch( 's3' ,cls=OVSSwitch, protocols="OpenFlow13")#,controller=RemoteController,ip=contip)
 #bw=100
+s4 = net.addSwitch('s4', cls=OVSSwitch, protocols="OpenFlow13")
 
 #hosts = [h1, h2, h3, h4, h5, h6, h7, h8, h9, h0, hClient]
+
 hosts = [h1, h2, h0, h9, hClient, hServer, h3, h4]
 
 net.addLink( s1, h1 )#, bw=bw)
@@ -59,7 +61,8 @@ net.addLink( s1, hClient )#, bw=bw)
 net.addLink( s2, hServer)#, bw=bw )
 net.addLink( s2, h9)
 net.addLink( s3, h3)
-net.addLink( s3, h4)
+net.addLink( s4, h4)
+net.addLink( s4, s3)
 
 info('*** Starting network\n')
 net.build()
@@ -69,6 +72,7 @@ for controller in net.controllers:
 net.get('s1').start([c0])
 net.get('s2').start([c0])
 net.get('s3').start([c0])
+net.get('s4').start([c0])
 print('network started')
 
 info('*** Testing connectivity\n')
