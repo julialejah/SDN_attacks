@@ -14,11 +14,13 @@ import json
 from scapy.all import sniff
 import requests
 from fastapi import FastAPI
-
+import pandas as pd
+ 
 # function to send LLDP packets and simulate a link
 _native_value = (int, float, str, bytes, bool, list, tuple, set, dict, type(None))
 def _layer2dict(obj):
-    d = {}
+    d = pd.DataFrame({"Layer","Field","Value"})
+    print(d)
     if not getattr(obj, 'fields_desc', None):
         return
     for f in obj.fields_desc:
@@ -32,6 +34,7 @@ def _layer2dict(obj):
 #            print('type: '+type(str(value).encode()))
         else:
             d[f.name] = value
+        print (obj.name+"...."+f.name+"...."+str(value))
     return {obj.name: d}
 
 # Adapted from https://github.com/littlezz/scapy2dict
@@ -77,8 +80,8 @@ def linkfabr(ifa,hostname):
 #            with open("/root/lldppack_"+hostname+"_"+str(lim)+".pk",'w',encoding = 'utf-8') as f:
 #                f.write(str(pkt))
             with open ("/root/dic_"+hostname+"_"+str(lim)+".dic",'w') as f:
-                f.write(str(data))
-            
+                f.write(str(data))            
+
 
 def getlldppack(host_2,ifa):
     print("entra func thre")
@@ -88,28 +91,45 @@ def getlldppack(host_2,ifa):
     while lim<10:
         try:
             with open (file) as f:
-                lldppa = f.read()
+                lldp1 = f.read()
         except:
             with open(log,'a') as lf:
                 lf.write("error when reading the packet "+file+"\n")
             time.sleep(8)
         else:
-            print("lee")
-            lldppack1 = lldppa.replace(" None,","")
-            lldppack2 = lldppack1.replace("[","")
-            lldppack = lldppack2.replace("]","")
-            lldp1= lldppack
-            lslldp=lldppack.split("}, {")
-            #print(lslldp) 
-            print(type(lslldp))
-            print(len(lslldp))
+            lldp1 = lldp1.replace(" None,","")
+            lldp1 = lldp1.replace("[","")
+            lldp1 = lldp1.replace("]","")
+            lldp1 = lldp1.replace(": ","= ")
+            lldp1 = lldp1.replace("'_"," _")
+            lldp1 = lldp1.replace(" '","  ")
+            lldp1 = lldp1.replace("'}"," }")
+            lldp1 = lldp1.replace("'="," =")
+
+            ind2 = lldp1.index("LLDPDUChassisID")
+            chassisid = lldp1[ind2+19:ind2+94]
             ind1 = lldp1.index("LLDPDUPortID")
-            print(lldp1[ind1+16:ind1+78])
-#'LLDPDUPortID': {'_type': 2, '_length': 2, 'subtype': 7, 'family': 'id': "b'1'"}
-                
-#dictionary = dict(subString.split("=") for subString in str.split(";"))
-#            dic=dict(subString.split(""
-#            ether=Ether(
+            portid = lldp1[ind1+16:ind1+77]
+            ind3 = lldp1.index("LLDPDUTimeToLive")
+            ttl = lldp1[ind3+20:ind3+57]
+            ind4 = lldp1.index("LLDPDUSystemName")
+            sysname = lldp1[ind4+20:ind4+76]
+            ind5 = lldp1.index("LLDPDUGenericOrganisationSpecific")
+            genorgspec1 = lldp1[ind5+37:ind5+122]
+            ind6=ind5+130
+            genorgspec2 = lldp1[ind6+37:ind6+162]
+            ind7 = lldp1.index("LLDPDUEndOfLLDPDU")
+            end = lldp1[ind7+21:ind7+45]
+            print(portid) 
+            print(chassisid) 
+            print(ttl) 
+            print(sysname) 
+            print(genorgspec1)
+            print(genorgspec2) 
+            print(end) 
+            e = Ether()
+            lldp = LLDPDUChassisID(_type= 1, _length= 7, subtype= 4, family= None, id= '00:00:00:00:00:01')
+          
             sendp(lldppack,count=1, iface=ifa)
             lim = lim +1
             with open(log,'a') as lf:

@@ -29,7 +29,6 @@ def _layer2dict(obj):
             value = _layer2dict(value)
         if type(value) is bytes:
             d[f.name] = str(value)
-#            print('type: '+type(str(value).encode()))
         else:
             d[f.name] = value
     return {obj.name: d}
@@ -42,7 +41,6 @@ def to_dict(p):
     """
     d = list()
     count = 0
-    #print('Paquete: \n'+str(p))
     while True:
         layer = p.getlayer(count)
         if not layer:
@@ -67,55 +65,37 @@ def linkfabr(ifa,hostname):
     lis =[]
     lld =[]  
     while lim<10  :
+        lim = lim + 1
         pkt = sniff(count=1,iface=ifa)[0]
         data = to_dict(pkt)
-#        jsobj=json.dumps(
         ethtype=data[0]['Ethernet']['type']
         if ethtype == 0x88cc:
-            lim = lim + 1
             print('lldp')
-#            with open("/root/lldppack_"+hostname+"_"+str(lim)+".pk",'w',encoding = 'utf-8') as f:
-#                f.write(str(pkt))
-            with open ("/root/dic_"+hostname+"_"+str(lim)+".dic",'w') as f:
-                f.write(str(data))
-            
+            with open("/root/lldppack_"+hostname+"_"+str(lim)+".pk",'w',encoding = 'utf-8') as f:
+                f.write(str(pkt))
+
 
 def getlldppack(host_2,ifa):
-    print("entra func thre")
     lim = 1
     log = "/root/log.log"
-    file = "/root/dic_"+str(host_2)+"_"+str(lim)+".dic"
+    file = "/root/lldppack_"+str(host_2)+"_"+str(lim)+".pk"
     while lim<10:
         try:
             with open (file) as f:
-                lldppa = f.read()
+                pack = f.read()
         except:
             with open(log,'a') as lf:
                 lf.write("error when reading the packet "+file+"\n")
             time.sleep(8)
         else:
             print("lee")
-            lldppack1 = lldppa.replace(" None,","")
-            lldppack2 = lldppack1.replace("[","")
-            lldppack = lldppack2.replace("]","")
-            lldp1= lldppack
-            lslldp=lldppack.split("}, {")
-            #print(lslldp) 
-            print(type(lslldp))
-            print(len(lslldp))
-            ind1 = lldp1.index("LLDPDUPortID")
-            print(lldp1[ind1+16:ind1+78])
-#'LLDPDUPortID': {'_type': 2, '_length': 2, 'subtype': 7, 'family': 'id': "b'1'"}
-                
-#dictionary = dict(subString.split("=") for subString in str.split(";"))
-#            dic=dict(subString.split(""
-#            ether=Ether(
-            sendp(lldppack,count=1, iface=ifa)
+            sendp(pack,count=1, iface=ifa)
+            print(pack)
             lim = lim +1
             with open(log,'a') as lf:
                 lf.write('read packet '+file+"\n")
 
-ifa = get_ifa()        
+ifa = get_ifa()
 host_2=sys.argv[1]
 print(host_2)
 getpack = threading.Thread(target=getlldppack,args=[host_2,ifa])

@@ -23,14 +23,13 @@ from mininet.link import OVSLink
 from mininet.log import info, setLogLevel
 import scapy.all as scapy
 import time
+from mininet.link import Intf
 
 contip = sys.argv[1]
 dirhome = sys.argv[2]
-
-setLogLevel('info')
 net = Containernet(link=TCLink)
-c0 = RemoteController (name='C0',controller=RemoteController, 
-			port=6653,  ip= contip)
+setLogLevel('info')
+c0 = RemoteController (name='C0',controller=RemoteController, port=6653,  ip= contip)
 info('*** controller ok \n')
 h1 = net.addDocker( 'h1' , dimage="scapy", volumes=[dirhome+"/SDN_attacks/pyscripts/attacks:/root/:rw"])
 h2 = net.addDocker( 'h2' , dimage="scapy", volumes=[dirhome+"/SDN_attacks/pyscripts/attacks:/root/:rw"])
@@ -40,29 +39,47 @@ h9 = net.addDocker( 'h9' , dimage="scapy", volumes=[dirhome+"/SDN_attacks/pyscri
 h0 = net.addDocker( 'h0' , dimage="scapy", volumes=[dirhome+"/SDN_attacks/pyscripts/attacks:/root/:rw"])
 hClient = net.addDocker( 'hClient', dimage="scapy", volumes=[dirhome+"/SDN_attacks/pyscripts/attacks:/root/:rw"])
 hServer = net.addDocker( 'hServer' , dimage="ubuntu:trusty", volumes=[dirhome+"/SDN_attacks/pyscripts/attacks:/root/:rw"])
+
+
 #volumes=["/:/mnt/vol1:rw"]
 s1 = net.addSwitch('s1', cls=OVSSwitch, protocols='OpenFlow13')#,controller=RemoteController,ip=contip)
 s2 = net.addSwitch( 's2' ,cls=OVSSwitch, protocols="OpenFlow13")#,controller=RemoteController,ip=contip)
 s3 = net.addSwitch( 's3' ,cls=OVSSwitch, protocols="OpenFlow13")#,controller=RemoteController,ip=contip)
+s4 = net.addSwitch( 's4' ,cls=OVSSwitch, protocols="OpenFlow13")#,controller=RemoteController,ip=contip)
 #bw=100
-s4 = net.addSwitch('s4', cls=OVSSwitch, protocols="OpenFlow13")
+
 
 #hosts = [h1, h2, h3, h4, h5, h6, h7, h8, h9, h0, hClient]
-
 hosts = [h1, h2, h0, h9, hClient, hServer, h3, h4]
 
-net.addLink( s1, h1 )#, bw=bw)
-net.addLink( s1, h2 )#, bw=bw)
-net.addLink( s2, h0 )#, bw=bw)
+net.addLink( s1, h1,intfName1=None,intfName2='h1-eth0') #--
+net.addLink( s3, h4,intfName1=None,intfName2='h4-eth0') #--
+net.addLink( s4, h4,intfName1=None,intfName2='h4-eth1',addr1='1e:a7:96:cc:06:e0',addr2='4a:d8:f8:b1:01:98')
+net.addLink( s4, h1,intfName1=None,intfName2='h1-eth1',addr1='1e:a7:96:cc:06:e1',addr2='42:45:3a:e0:cf:0f')
+
+print(s1.connectionsTo)
+print(s1.intfList())
+print(s1.intfNames())
+print (s1.MAC(intf='s1-eth1'))
+#h1.setIP('10.0.0.15',prefixLen = 24, intf='h1-eth1')
+#h1.setHostRoute('10.0.0.16','h1-eth0')
+#h1.setHostRoute('10.0.0.4','h1-eth1')
+#h4.setIP('10.0.0.16',prefixLen = 24, intf='h4-eth1')
+#h4.setHostRoute('10.0.0.15','h4-eth0')
+#h4.setHostRoute('10.0.0.1','h4-eth1')
+
+
+net.addLink( s1, h2 )
+net.addLink( s2, h0 )
 net.addLink( s1, s2)
 net.addLink( s2, s3)
-#net.addLink( s1, s3)
+net.addLink( s1, s3)
 net.addLink( s1, hClient )#, bw=bw)
 net.addLink( s2, hServer)#, bw=bw )
 net.addLink( s2, h9)
 net.addLink( s3, h3)
-net.addLink( s4, h4)
-net.addLink( s4, s3)
+
+#h4.addIntf(Intf('h4-eth0',node=h4))
 
 info('*** Starting network\n')
 net.build()
@@ -73,18 +90,16 @@ net.get('s1').start([c0])
 net.get('s2').start([c0])
 net.get('s3').start([c0])
 net.get('s4').start([c0])
+
 print('network started')
 
 info('*** Testing connectivity\n')
-#for i in hosts:
-    #i.cmd('touch /root/net1.pcap')
-#    i.cmd('nohup python3 /root/linkfab.py &')
-#time.sleep(5)
 net.ping(hosts)
+#net.pingAll()
 
-time.sleep(10)
+#time.sleep(10)
 
-h1.cmd('touch /root/h1.pcap')
+#h1.cmd('touch /root/h1.pcap')
 #h1.cmd('nohup tshark -ni any -w /root/h1.pcap  &')
 #h1.cmd('nohup python3 /root/linkfab3.py '+str(h4.name)+' &')
 #h4.cmd('nohup python3 /root/linkfab3.py '+str(h1.name)+' &')

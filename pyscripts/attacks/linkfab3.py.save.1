@@ -98,18 +98,17 @@ def getlldppack(host_2,ifa):
             lldppack1 = lldppa.replace(" None,","")
             lldppack2 = lldppack1.replace("[","")
             lldppack = lldppack2.replace("]","")
-            lldp1= lldppack
             lslldp=lldppack.split("}, {")
-            #print(lslldp) 
+            print(lslldp) 
             print(type(lslldp))
             print(len(lslldp))
-            ind1 = lldp1.index("LLDPDUPortID")
-            print(lldp1[ind1+16:ind1+78])
-#'LLDPDUPortID': {'_type': 2, '_length': 2, 'subtype': 7, 'family': 'id': "b'1'"}
+            ether=Ether(type=0x88cc)
+#            p=ether/LLDPDUChassisID()
+            for i in lslldp:
+                print(type(dic(i))
                 
 #dictionary = dict(subString.split("=") for subString in str.split(";"))
 #            dic=dict(subString.split(""
-#            ether=Ether(
             sendp(lldppack,count=1, iface=ifa)
             lim = lim +1
             with open(log,'a') as lf:
