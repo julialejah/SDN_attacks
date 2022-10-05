@@ -1,3 +1,4 @@
+
 #! /usr/bin/env python
 #creates a fake link between 2 hosts
 ## Args [1] = name of the second host
@@ -15,7 +16,8 @@ from scapy.all import sniff
 #import requests
 #from fastapi import FastAPI
 import pandas as pd
- 
+pd.set_option('display.max_columns', 100)
+
 # function to send LLDP packets and simulate a link
 _native_value = (int, float, str, bytes, bool, list, tuple, set, dict, type(None))
 def _layer2df(obj):
@@ -27,7 +29,7 @@ def _layer2df(obj):
         if value is type(None):
             value = None
         if not isinstance(value, _native_value):
-            value = _layer2dict(value)
+            value = _layer2df(value)
         #if type(value) is bytes:
            # d[f.name] = str(value)
 #            print('type: '+type(str(value).encode()))
@@ -47,10 +49,9 @@ def to_dataframe(p):
         if not layer:
             break
         cap=_layer2df(layer)
-        print(type(cap))
         df = df.append(cap)
-        df = df.reset_index(inplace = True)
         count += 1
+#    print(df)
     return (df)
 
 
@@ -71,8 +72,8 @@ def linkfabr(ifa,hostname):
     while lim<10  :
         pkt = sniff(count=1,iface=ifa)[0]
         data = to_dataframe(pkt)
-        print(data)
-        ethtype=data[0]['Ethernet']['type']
+        ethtype = int(data.loc[(data['Layer']=='Ethernet')&(data['Field']=='type')].iloc[0,2])
+        print(ethtype)
         if ethtype == 0x88cc:
             lim = lim + 1
             print('lldp')
