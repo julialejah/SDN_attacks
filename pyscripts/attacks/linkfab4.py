@@ -12,15 +12,14 @@ import pyshark
 import os
 import json
 from scapy.all import sniff
-import requests
-from fastapi import FastAPI
+#import requests
+#from fastapi import FastAPI
 import pandas as pd
  
 # function to send LLDP packets and simulate a link
 _native_value = (int, float, str, bytes, bool, list, tuple, set, dict, type(None))
-def _layer2dict(obj):
-    d = pd.DataFrame({"Layer","Field","Value"})
-    print(d)
+def _layer2df(obj):
+    df = pd.DataFrame(columns=["Layer","Field","Value"])
     if not getattr(obj, 'fields_desc', None):
         return
     for f in obj.fields_desc:
@@ -29,30 +28,30 @@ def _layer2dict(obj):
             value = None
         if not isinstance(value, _native_value):
             value = _layer2dict(value)
-        if type(value) is bytes:
-            d[f.name] = str(value)
+        #if type(value) is bytes:
+           # d[f.name] = str(value)
 #            print('type: '+type(str(value).encode()))
         else:
-            d[f.name] = value
-        print (obj.name+"...."+f.name+"...."+str(value))
-    return {obj.name: d}
+             df=df.append({"Layer":str(obj.name),"Field":str(f.name),"Value":str(value)},ignore_index=True)
+    return (df)
 
 # Adapted from https://github.com/littlezz/scapy2dict
-def to_dict(p):
+def to_dataframe(p):
     """
-    Turn every layer to dict, store in list.
-    :return: list
+    Turn every layer rows in df
     """
-    d = list()
+    df = pd.DataFrame(columns=["Layer","Field","Value"])
     count = 0
-    #print('Paquete: \n'+str(p))
     while True:
         layer = p.getlayer(count)
         if not layer:
             break
-        d.append(_layer2dict(layer))
+        cap=_layer2df(layer)
+        print(type(cap))
+        df = df.append(cap)
+        df = df.reset_index(inplace = True)
         count += 1
-    return d
+    return (df)
 
 
 def get_ifa():
@@ -71,8 +70,8 @@ def linkfabr(ifa,hostname):
     lld =[]  
     while lim<10  :
         pkt = sniff(count=1,iface=ifa)[0]
-        data = to_dict(pkt)
-#        jsobj=json.dumps(
+        data = to_dataframe(pkt)
+        print(data)
         ethtype=data[0]['Ethernet']['type']
         if ethtype == 0x88cc:
             lim = lim + 1
