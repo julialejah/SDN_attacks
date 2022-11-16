@@ -13,6 +13,7 @@ import socket
 import pyshark
 import os
 import json
+import base64
 from scapy.all import sniff
 #import requests
 #from fastapi import FastAPI
@@ -39,18 +40,18 @@ def _layer2df(obj):
             print(value)
             try:
                 aux=int(value)
+                print("decode int")
                 df=df.append({"Layer":str(obj.name),"Field":str(f.name),"Value":aux},ignore_index=True)
-                print("codifico entero")
             except:
                 try:
                     hval=value.decode("utf-8")
+                    print("decode utf-8")
                     df=df.append({"Layer":str(obj.name),"Field":str(f.name),"Value":hval},ignore_index=True)
-                    print("codifico utf8")
                 except:
-                    hval=value.hex()
+                    hval=base64.b64encode(value)
                     print(hval)
+                    print("decode base64")
                     df=df.append({"Layer":str(obj.name),"Field":str(f.name),"Value":hval},ignore_index=True)
-                    print("codifico otro") #.hex()
         else:
              df=df.append({"Layer":str(obj.name),"Field":str(f.name),"Value":str(value)},ignore_index=True)
     return (df)
@@ -85,10 +86,10 @@ def linkfabr(ifa,hostname):
     lpc = 0
     lis =[]
     lld =[]  
-    while lim<5 and flag :
+    while lim<10 and flag :
         pkt = sniff(count=1,iface=ifa)[0]
         data = to_dataframe(pkt)
-        print(data)
+        # print(data)
         print(data.loc[(data['Layer']=='Ethernet')&(data['Field']=='type')])#.iloc[0,2])
         ethtype = int(data.loc[(data['Layer']=='Ethernet')&(data['Field']=='type')].iloc[0,2])
         if ethtype == 0x88cc:
@@ -101,7 +102,7 @@ def getlldppack(host_2,ifa):
     lim = 1
     log = "/root/log.log"
     file = "/root/dic_"+str(host_2)+"_"+str(lim)+".csv"
-    while lim<5:
+    while lim<10:
         try:
             lldp1 = pd.read_csv(file)
         except:
@@ -144,44 +145,31 @@ def getlldppack(host_2,ifa):
             g1=int(lldp1.loc[(lldp1['Layer']=='LLDPDUEndOfLLDPDU')&(lldp1['Field']=='_type')].iloc[0,2])
             g2=int(lldp1.loc[(lldp1['Layer']=='LLDPDUEndOfLLDPDU')&(lldp1['Field']=='_length')].iloc[0,2])
            
-           
+            print("b1 from dataframe converted to int is ---> "+str(b1))
+            print("b2 from dataframe converted to int is ---> "+str(b2))
+            print("b3 from dataframe converted to int is ---> "+str(b3))
+            print("b4 from dataframe converted to int is ---> "+str(b4))
+            print("b5 from dataframe converted to int is ---> "+str(b5))
+                        
             l1 = LLDPDUChassisID(_type=a1,_length=a2,subtype=a3,family=a4,id=a5)
-            l2 = LLDPDUPortID(_type=b1,_length=b2,subtype=b3,family=b4,id=str(b5))
+            l2 = LLDPDUPortID(_type=2,_length=2,subtype=7,family=None,id=1)
             l3 = LLDPDUTimeToLive(_type=c1,_length=c2,ttl=c3)
             l4 = LLDPDUSystemName(_type=d1,_length=d2,system_name=d3)
             l5 = LLDPDUGenericOrganisationSpecific(_type=e1,_length=e2,org_code=e3,subtype=e4,data=e5)
-            
-            print("f2 es: -----> "+str(f2))
-            print("len(f5) es: -----> "+str(len(f5)))
-            n=int(len(f5)/(f2-4))
-            print("n es: "+str(n))
-            if len(f5) > f2-4:
-                parts = [f5[i:i+n].encode('utf-8') for i in range(0, len(f5), n)]
-            print(parts)
-            parts = [ int.from_bytes(parts[i], "little") for i in range (0,len(parts))]    
-            print(parts)
-            print(type(parts))
-            print(len(parts))
-            print("parts[1]: "+str(parts[1]))
-            print(len(parts[1]))
 
-#            auxa_=f5[2:-1]
-#            auxa = hex(f5).hex()
-#            print("--------->"+str(auxa))
-#            print(auxa_)
-#            print("-------", f5)
-#            print(type(f5))
-            auxa = b''.join(parts)
-            print(auxa)
-            print(len(auxa))
-#            print(len(auxa))
+            print("f5 from dataframe is ---->>> "+str(f5))
+            print("clean f5 from dataframe is ---->>> "+str(f5[2:-1]))
+            dato = base64.b64decode(f5[2:-1])
+            print(dato)
+            print(type(dato))
+            print("to str: "+str(dato))
+            print("-----------------------------------------")
+            print("to bytes: "+str(bytes(dato)))
 
-
-
-            l6 = LLDPDUGenericOrganisationSpecific(_type=f1,_length=f2,org_code=f3,subtype=f4,data=auxa)
+            l6 = LLDPDUGenericOrganisationSpecific(_type=f1,_length=f2,org_code=f3,subtype=f4,data=dato)
             l7 = LLDPDUEndOfLLDPDU(_type=0,_length=0)
             lldpu_layer = LLDPDU()
-            lldpu_layer = l1/l2/l3/l4/l6
+            lldpu_layer = l1/l2/l3/l4/l5/l6/l7
 #            lldpu_layer = l1/l2/l3/l4/l6/l7
             
             pack = e/lldpu_layer
@@ -194,7 +182,9 @@ def getlldppack(host_2,ifa):
 
             with open(log,'a') as lf:
                 lf.write('read packet '+file+"\n")
-   
+    l6f = l5 = LLDPDUGenericOrganisationSpecific(_type=e1,_length=e2,org_code=e3,subtype=e4,data="script_ending123")
+    packf = e/l1/l2/l3/l4/l6f/l7
+    sendp(packf,count=1, iface=ifa)
 
 ifa = get_ifa()        
 host_2=sys.argv[1]
